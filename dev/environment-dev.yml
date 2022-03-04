@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+dependencies:
+  - black
+  - pre_commit
+  - pytest
+  - pytest-cov
+  - python 3.8.*
