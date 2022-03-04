@@ -35,8 +35,6 @@ def gather_license_info(package_info: dict) -> dict:
             return x
 
     license_info = {
-        "name": package_info["name"],
-        "version": package_info["version"],
         "license": about_content.get("license", ""),
         "license_family": about_content.get("license_family", ""),
         "license_file": [
@@ -45,7 +43,8 @@ def gather_license_info(package_info: dict) -> dict:
     }
 
     license_info["license_texts"] = [license.read_text() for license in license_info["license_file"]]
-    return license_info
+    package_info["3rd_party_license_info"] = license_info
+    return package_info
 
 
 class CondaEnv:
@@ -80,12 +79,12 @@ class CondaEnv:
         return out
 
 
-base_template = """
+_base_template = """
 3rd-party licenses
 
 {% for info in license_infos %}
 License for {{ info['name'] }} {{ info['version'] }}
-    {% for license_text in info['license_texts'] %}
+    {% for license_text in info['3rd_party_license_info']['license_texts'] %}
 {{ license_text }}
 {% endfor %}
 {% endfor %}
@@ -93,6 +92,9 @@ License for {{ info['name'] }} {{ info['version'] }}
 """
 
 
-def base_license_renderer(license_infos, template=base_template):
-    template = Template(template)
+def base_license_renderer(license_infos: List[Dict[str, Any]], template_file: Path = None):
+    if not template_file:
+        template = Template(_base_template)
+    else:
+        template = Template(template_file.read_text())
     return template.render(license_infos=license_infos)
