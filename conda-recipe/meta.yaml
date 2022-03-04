@@ -1,0 +1,40 @@
+
+{% set data = load_setup_py_data() %}
+
+package:
+  name: conda-3rdparty
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  noarch: python
+  script: python -m pip install --no-deps --ignore-installed .
+  entry_points:
+    {% for ep in data['entry_points']['console_scripts'] %}
+    - {{ ep }}
+    {% endfor %}
+
+
+requirements:
+  build:
+    - python >=3.7
+    - pip
+  run:
+    - python >=3.7
+    # dependencies are defined in setup.py
+    {% for dep in data['install_requires'] %}
+    - {{ dep.lower() }}
+    {% endfor %}
+
+test:
+  imports:
+    - conda3rdparty
+  commands:
+    - conda-3rdparty --version
+
+about:
+  home: https://github.com/ilastik/conda-3rdparty
+  license: MIT
+  summary: Command line tool to summarize 3rd party licenses of conda environments.
