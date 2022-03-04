@@ -6,6 +6,8 @@ from typing import Iterable, Mapping, Union
 
 from conda3rdparty import __version__
 
+from .common import CondaEnv, base_license_renderer
+
 
 class CondaNotFound(Exception):
     pass
@@ -29,6 +31,9 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    env = CondaEnv(args.name)
+    print(base_license_renderer(env.license_infos()))
 
 
 if __name__ == "__main__":
