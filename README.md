@@ -1,3 +1,6 @@
+[![Anaconda-Server Badge](https://anaconda.org/ilastik-forge/conda-3rdparty/badges/version.svg)](https://anaconda.org/ilastik-forge/conda-3rdparty)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 # conda 3rd party
 
 Extract/summarize all licenses in an environment
