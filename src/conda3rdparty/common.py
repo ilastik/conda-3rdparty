@@ -5,6 +5,8 @@ from typing import Any, Dict, List
 
 from jinja2 import Template
 
+MISSING = object()
+
 
 class CondaPackageFileNotFound(Exception):
     pass
@@ -18,7 +20,8 @@ def conda_envs() -> List[Path]:
     return [Path(x) for x in json.loads(subprocess.check_output(["conda", "env", "list", "--json"]))["envs"]]
 
 
-def gather_license_info(package_info: dict) -> dict:
+def gather_license_info(package_info: dict, fallback_info: dict = None) -> dict:
+    fallback_info = fallback_info or {}
     package_path = Path(package_info["extracted_package_dir"])
     about_file = package_path / "info" / "about.json"
     if not about_file.exists():
@@ -42,7 +45,22 @@ def gather_license_info(package_info: dict) -> dict:
         ],
     }
 
-    license_info["license_texts"] = [license.read_text() for license in license_info["license_file"]]
+    license_texts = [
+        license.read_text(encoding="latin-1") if license.exists() else MISSING
+        for license in license_info["license_file"]
+    ]
+
+    if MISSING not in license_texts:
+        # treat as invalid
+        license_info["license_source"] = "package"
+    elif package_info["name"] in fallback_info:
+        license_info["license_source"] = "fallback"
+        license_texts = [
+            license.read_text(encoding="latin-1") for license in fallback_info[package_info["name"]]["license_file"]
+        ]
+
+    license_info["license_texts"] = license_texts
+
     package_info["3rd_party_license_info"] = license_info
     return package_info
 
@@ -71,10 +89,10 @@ class CondaEnv:
     def package_list(self) -> List[Dict[str, Any]]:
         return sorted([json.loads(x.read_text()) for x in self.conda_meta_path.glob("*.json")], key=lambda x: x["name"])
 
-    def license_infos(self) -> List[Dict[str, Any]]:
+    def license_infos(self, fallback_info=None) -> List[Dict[str, Any]]:
         out = []
         for package in self.package_list:
-            out.append(gather_license_info(package))
+            out.append(gather_license_info(package, fallback_info))
 
         return out
 
