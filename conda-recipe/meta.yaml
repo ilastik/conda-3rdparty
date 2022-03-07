@@ -38,3 +38,4 @@ about:
   home: https://github.com/ilastik/conda-3rdparty
   license: MIT
   summary: Command line tool to summarize 3rd party licenses of conda environments.
+  license_file: ../LICENSE

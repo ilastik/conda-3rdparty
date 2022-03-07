@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="conda-3rdparty",
-    version="0.0.1dev0",
+    version="0.0.2dev0",
     author="ilastik-team",
     license="MIT",
     license_files=("LICENSE",),
