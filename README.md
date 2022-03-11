@@ -14,7 +14,7 @@ conda install -c ilastik-forge -c conda-forge conda-3rdparty
 
 ## Usages
 
-### Basic
+### Command line usage:
 
 ```
 # generate text file with all licenses, sorted by package name
@@ -24,13 +24,23 @@ conda 3rdparty -n <environment_name> > 3rdparty.txt
 conda 3rdparty -n <environment_name> --check
 ```
 
-### supply missing licenses externally
+#### supply missing licenses externally
 
 ```
 conda 3rdparty -n <environment_name> --fallback-file <path-to-fallback.json>
 
 # json file assumed to be a dictionary of
 # dict["<package_name>"]["license_file"] = ["list_of_license", "files_relative_to_the_json_file"]
+```
+
+### library usage
+
+```python
+from conda3rdparty import render_license_info
+from pathlib import Path
+
+license_texts = render_license_info(env_name="myenvname")
+# also takes `template_file: Path` and `fallback_file: Path` kwargs
 ```
 
 

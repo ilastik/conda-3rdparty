@@ -65,6 +65,16 @@ def gather_license_info(package_info: dict, fallback_info: dict = None) -> dict:
     return package_info
 
 
+def load_fallback(fallback_path: Path) -> dict:
+    assert fallback_path.exists()
+    fallback = json.loads(fallback_path.read_text())
+    for pkg in fallback:
+        fallback[pkg]["license_file"] = [
+            fallback_path.parent / license_file for license_file in fallback[pkg]["license_file"]
+        ]
+    return fallback
+
+
 class CondaEnv:
     def __init__(self, env_name: str):
         self._name = env_name
@@ -110,9 +120,16 @@ License for {{ info['name'] }} {{ info['version'] }}
 """
 
 
-def base_license_renderer(license_infos: List[Dict[str, Any]], template_file: Path = None):
+def base_license_renderer(license_infos: List[Dict[str, Any]], template_file: Path = None) -> str:
     if not template_file:
         template = Template(_base_template)
     else:
         template = Template(template_file.read_text())
     return template.render(license_infos=license_infos)
+
+
+def render_license_info(env_name: str, template_file: Path = None, fallback_file: Path = None) -> str:
+    env = CondaEnv(env_name)
+    fallback_info = load_fallback(fallback_file) if fallback_file else None
+    license_infos = env.license_infos(fallback_info=fallback_info)
+    return base_license_renderer(license_infos, template_file)

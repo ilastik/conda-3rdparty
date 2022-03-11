@@ -1,13 +1,10 @@
-import json
-import pathlib
 import sys
 from argparse import ArgumentParser
-from subprocess import check_output
-from typing import Iterable, Mapping, Union
+from pathlib import Path
 
 from conda3rdparty import __version__
 
-from .common import MISSING, CondaEnv, base_license_renderer
+from .common import MISSING, CondaEnv, load_fallback, render_license_info
 
 
 class CondaNotFound(Exception):
@@ -31,19 +28,11 @@ def parse_args():
     return args
 
 
-def load_fallback(fallback_path: pathlib.Path) -> dict:
-    assert fallback_path.exists()
-    fallback = json.loads(fallback_path.read_text())
-    for pkg in fallback:
-        fallback[pkg]["license_file"] = [
-            fallback_path.parent / license_file for license_file in fallback[pkg]["license_file"]
-        ]
-    return fallback
-
-
-def make_check(env: CondaEnv, fallback_file) -> int:
+def make_check(env_name: str, fallback_file: Path) -> int:
+    env = CondaEnv(env_name)
+    fallback_info = load_fallback(fallback_file) if fallback_file else None
     summary = []
-    for info in env.license_infos(fallback_file):
+    for info in env.license_infos(fallback_info):
         tmp = {"name": info["name"]}
         tmp.update(info["3rd_party_license_info"])
         tmp["ok"] = not any(x == MISSING for x in tmp["license_texts"])
@@ -60,19 +49,14 @@ def make_check(env: CondaEnv, fallback_file) -> int:
 
 def main():
     args = parse_args()
+    template = Path(args.template) if args.template else None
 
-    env = CondaEnv(args.name)
-
-    fallback = None
-    if args.fallback_file:
-        fallback = load_fallback(pathlib.Path(args.fallback_file))
+    fallback = Path(args.fallback_file) if args.fallback_file else None
 
     if args.check:
-        return make_check(env, fallback)
+        return make_check(args.name, fallback)
 
-    template = pathlib.Path(args.template) if args.template else None
-
-    print(base_license_renderer(env.license_infos(fallback), template_file=template))
+    print(render_license_info(args.name, template_file=template, fallback_file=fallback))
 
 
 if __name__ == "__main__":
