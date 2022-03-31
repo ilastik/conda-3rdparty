@@ -99,9 +99,12 @@ class CondaEnv:
     def package_list(self) -> List[Dict[str, Any]]:
         return sorted([json.loads(x.read_text()) for x in self.conda_meta_path.glob("*.json")], key=lambda x: x["name"])
 
-    def license_infos(self, fallback_info=None) -> List[Dict[str, Any]]:
+    def license_infos(self, fallback_info=None, ignore_packages: List[str] = None) -> List[Dict[str, Any]]:
         out = []
+        ignore_packages = ignore_packages or []
         for package in self.package_list:
+            if package["name"] in ignore_packages:
+                continue
             out.append(gather_license_info(package, fallback_info))
 
         return out
@@ -128,8 +131,10 @@ def base_license_renderer(license_infos: List[Dict[str, Any]], template_file: Pa
     return template.render(license_infos=license_infos)
 
 
-def render_license_info(env_name: str, template_file: Path = None, fallback_file: Path = None) -> str:
+def render_license_info(
+    env_name: str, template_file: Path = None, fallback_file: Path = None, ignore_packages: List[str] = None
+) -> str:
     env = CondaEnv(env_name)
     fallback_info = load_fallback(fallback_file) if fallback_file else None
-    license_infos = env.license_infos(fallback_info=fallback_info)
+    license_infos = env.license_infos(fallback_info=fallback_info, ignore_packages=ignore_packages)
     return base_license_renderer(license_infos, template_file)
