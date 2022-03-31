@@ -23,6 +23,7 @@ def parse_args():
     p.add_argument("--fallback-file", type=str, help="path to json file pointing to fallback licenses for packages.")
     # p.add_argument("-v", "--verbose", action="count")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    p.add_argument("-i", "--ignore", action="append")
 
     args = p.parse_args()
     return args
@@ -53,10 +54,12 @@ def main():
 
     fallback = Path(args.fallback_file) if args.fallback_file else None
 
+    ignore = args.ignore if args.ignore else None
+
     if args.check:
         return make_check(args.name, fallback)
 
-    print(render_license_info(args.name, template_file=template, fallback_file=fallback))
+    print(render_license_info(args.name, template_file=template, fallback_file=fallback, ignore_packages=ignore))
 
 
 if __name__ == "__main__":
