@@ -29,6 +29,8 @@ requirements:
     {% endfor %}
 
 test:
+  requires:
+    - python 3.11
   imports:
     - conda3rdparty
   commands:
