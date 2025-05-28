@@ -13,7 +13,7 @@ class CondaNotFound(Exception):
 
 def parse_args():
     p = ArgumentParser(
-        description="conda-3rdpart is a tool to gather license information about packages in a conda environment."
+        description="conda-3rdparty is a tool to gather license information about packages in a conda environment."
     )
     p.add_argument("-n", "--name", type=str, help="Env name", required=True)
     p.add_argument("--check", action="store_true", help="print a summary, exitcode indicates success")

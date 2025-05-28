@@ -1,11 +1,13 @@
 import json
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from jinja2 import Template
 
 MISSING = object()
+
+import warnings
 
 
 class CondaPackageFileNotFound(Exception):
@@ -20,7 +22,7 @@ def conda_envs() -> List[Path]:
     return [Path(x) for x in json.loads(subprocess.check_output(["conda", "env", "list", "--json"]))["envs"]]
 
 
-def gather_license_info(package_info: dict, fallback_info: dict = None) -> dict:
+def gather_license_info(package_info: dict, fallback_info: Optional[dict] = None) -> dict:
     fallback_info = fallback_info or {}
     package_path = Path(package_info["extracted_package_dir"])
     about_file = package_path / "info" / "about.json"
@@ -99,10 +101,16 @@ class CondaEnv:
     def package_list(self) -> List[Dict[str, Any]]:
         return sorted([json.loads(x.read_text()) for x in self.conda_meta_path.glob("*.json")], key=lambda x: x["name"])
 
-    def license_infos(self, fallback_info=None, ignore_packages: List[str] = None) -> List[Dict[str, Any]]:
+    def license_infos(self, fallback_info=None, ignore_packages: Optional[List[str]] = None) -> List[Dict[str, Any]]:
         out = []
         ignore_packages = ignore_packages or []
-        for package in self.package_list:
+
+        package_list = self.package_list
+
+        if not package_list:
+            warnings.warn(f"No packages in environment {self.name} found - is this intentional?")
+
+        for package in package_list:
             if package["name"] in ignore_packages:
                 continue
             out.append(gather_license_info(package, fallback_info))
@@ -123,7 +131,7 @@ License for {{ info['name'] }} {{ info['version'] }}
 """
 
 
-def base_license_renderer(license_infos: List[Dict[str, Any]], template_file: Path = None) -> str:
+def base_license_renderer(license_infos: List[Dict[str, Any]], template_file: Optional[Path] = None) -> str:
     if not template_file:
         template = Template(_base_template)
     else:
@@ -132,7 +140,10 @@ def base_license_renderer(license_infos: List[Dict[str, Any]], template_file: Pa
 
 
 def render_license_info(
-    env_name: str, template_file: Path = None, fallback_file: Path = None, ignore_packages: List[str] = None
+    env_name: str,
+    template_file: Optional[Path] = None,
+    fallback_file: Optional[Path] = None,
+    ignore_packages: Optional[List[str]] = None,
 ) -> str:
     env = CondaEnv(env_name)
     fallback_info = load_fallback(fallback_file) if fallback_file else None
