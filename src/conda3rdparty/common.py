@@ -15,7 +15,7 @@ class CondaPackageFileNotFound(Exception):
 
 
 def conda_info() -> Dict[str, Any]:
-    return json.loads(subprocess.check_output(["conda", "info", "-e", "--json"]))
+    return json.loads(subprocess.check_output(["conda", "info", "--json"]))
 
 
 def conda_envs() -> List[Path]:

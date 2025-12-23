@@ -10,6 +10,6 @@ setup(
     package_dir={"": "src"},
     packages=find_packages("./src"),
     include_package_data=True,
-    install_requires=["jinja2"],
+    install_requires=["jinja2", "conda>=25.11.1"],
     entry_points={"console_scripts": ["conda-3rdparty = conda3rdparty.cli:main"]},
 )
