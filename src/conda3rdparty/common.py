@@ -108,7 +108,9 @@ class CondaEnv:
         package_list = self.package_list
 
         if not package_list:
-            warnings.warn(f"No packages in environment {self.name} found - is this intentional?")
+            warnings.warn(
+                f"No packages in environment {self.name} ({self.conda_meta_path=}) found - is this intentional?"
+            )
 
         for package in package_list:
             if package["name"] in ignore_packages:
