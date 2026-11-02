@@ -48,7 +48,7 @@ def gather_license_info(package_info: dict, fallback_info: Optional[dict] = None
     }
 
     license_texts = [
-        license.read_text(encoding="latin-1") if license.exists() else MISSING
+        license.read_text(encoding="latin-1") if license.exists() and license.is_file() else MISSING
         for license in license_info["license_file"]
     ]
 
